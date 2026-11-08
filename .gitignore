@@ -1,0 +1,12 @@
+_private/
+*.asv
+*.autosave
+*.mex*
+slprj/
+codegen/
+*.log
+Thumbs.db
+# Working notes (not for the public repo)
+claude.md
+CLAUDE.md
+PROGRESS.md
