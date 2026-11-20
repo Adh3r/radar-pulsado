@@ -8,7 +8,11 @@ Adam wrote for Lab 4.
 
 ## Course
 *Radiolocalización*, UPC-EETAC (Castelldefels). The lab statements specify the inputs and outputs
-of each function, but provide no code. They are not redistributed here.
+of each function, and are not redistributed here. The only code they include is two RCS routines
+in Lab 5 (sphere and circular plate), adapted by the course from B. R. Mahafza, *Radar Systems
+Analysis and Design Using MATLAB*, 2005. They are not included: `src/rcs` holds independent
+implementations (exact Mie series, physical optics), and the course routines were used locally
+only to cross-check them.
 
 ## References
 - J. I. Marcum, "A statistical theory of target detection by pulsed radar", 1960 (Marcum Q function).

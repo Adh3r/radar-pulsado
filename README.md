@@ -4,8 +4,8 @@
 
 This is a pulsed-radar processing chain built from first principles in plain MATLAB (no
 toolboxes). It covers the pulse train and range ambiguity, the receiver noise figure and radar
-equation, detection theory, Barker pulse compression with Doppler, CFAR detection and MTI clutter
-cancellation. All of it comes together
+equation, detection theory, Barker pulse compression with Doppler, radar cross section and
+Swerling fluctuation, CFAR detection and MTI clutter cancellation. All of it comes together
 in a simulated scene with targets, clutter and noise. Every model is checked against its closed
 form, and the checks run as an automated test suite.
 
@@ -141,6 +141,41 @@ had 101 samples instead of 100. The bug is now fixed and covered by a regression
 
 <img src="results/figures/s04_signal_anatomy.png" width="60%">
 
+### Radar cross section and Swerling models (Lab 5)
+<img src="results/figures/s05_sphere_rcs.png" width="100%">
+
+- **5.1 Sphere.** The exact Mie series, implemented from scratch, shows the three regions. In the
+  Rayleigh region σ follows 9(ka)⁴ π a², i.e. it grows as f⁴. In the Mie region there is a
+  resonance peak of 3.65 π a² at ka = 1.03. In the optical region σ tends to π a² (mean 1.000
+  for ka between 10 and 15). The routine supplied with the lab statement returns |Σ| instead of
+  |Σ|²; cross-checked locally, that gives half the physical slope in dB.
+- **5.2 Circular plate.** Physical optics, for r = 0.25 m at 3 GHz. At normal incidence
+  σ = 48.45 m² = 4πA²/λ², and the first null falls at 7.0°. The maximum at 0° comes from every
+  surface current re-radiating in phase. At 90° the projected area vanishes; physical optics
+  gives zero there, while real edge diffraction leaves a small residue.
+
+<img src="results/figures/s05_two_spheres.png" width="100%">
+
+- **5.3–5.4 Multi-scatterer RCS.** Contributions add coherently with their two-way phase 2kr.
+  Two 1 m² spheres follow 4σ₀cos²(kL cos φ) exactly, peaking at +6.02 dBsm. The number of lobes
+  grows with the electrical separation: 40, 4 and 2 maxima for L = 5λ, λ/2 and λ/20. At λ/20
+  the pair behaves as a single, almost isotropic 4 m² scatterer.
+
+<img src="results/figures/s05_swerling_statistics.png" width="100%">
+
+- **5.5 Comparable scatterers.** Ten scatterers of similar RCS, swept through 36 001 aspect
+  angles, give an exponential pdf, the Swerling I/II model: std/mean = 0.93, KS distance 0.019.
+- **5.6 One dominant scatterer.** Making one scatterer 17 dB stronger removes the deep fades,
+  and the result moves towards Swerling III/IV (KS distance 0.115). **[2026]** The exact
+  "dominant + Rayleigh" law fits much better (KS distance 0.010), so χ²₄ is only an
+  approximation for a strong dominant scatterer.
+- **[2026] Fluctuation loss.** A closed-form single-pulse Pd for Swerling III is derived and
+  checked by Monte Carlo. For Pd = 0.9 at Pfa = 10⁻⁶, a constant target needs 13.2 dB,
+  Swerling I/II needs 21.1 dB (8.0 dB more) and Swerling III/IV needs 17.3 dB (4.1 dB more).
+  Monte Carlo runs that use the simulated RCS sequences of 5.5 and 5.6 land on those curves.
+
+<img src="results/figures/s05_fluctuation_loss.png" width="55%">
+
 ### CFAR detection (Lab 6)
 <img src="results/figures/s06_cfar_threshold.png" width="100%">
 
@@ -201,7 +236,7 @@ Requires MATLAB R2020a or newer, with no toolboxes (tested on R2026a).
 ```matlab
 cd radar-pulsado
 run scripts/demo_end_to_end.m        % or any of scripts/s01 … s07
-results = runtests('tests');         % 42 tests
+results = runtests('tests');         % 49 tests
 ```
 To regenerate every figure: `matlab -batch "addpath('scripts'); run_all"`. Each simulation
 fixes its random seed, so every run gives the same numbers.
@@ -211,14 +246,15 @@ fixes its random seed, so every run gives the same numbers.
 src/waveform/     pulse_metrics, pulse_train, pulsed_radar, spectrum_fft, barker_code, phase_coded_pulse
 src/link_budget/  cascade_noise_figure, radar_snr, max_detection_range [2026]
 src/detection/    false_alarm_time, albersheim_snr, ca_cfar, ca_cfar_alpha, ca_cfar_pfa,
-                  marcum_q, pd_swerling0, pd_swerling1, threshold_from_pfa, roc_empirical [2026]
+                  marcum_q, pd_swerling0, pd_swerling1, pd_swerling3, threshold_from_pfa, roc_empirical [2026]
+src/rcs/          rcs_sphere_mie, rcs_circular_plate, rcs_scatterers, swerling_pdf
 src/processing/   matched_filter, doppler_frequency, apply_doppler, sidelobe_metrics, barker_search,
                   mti_canceller, mti_response, mti_clutter_attenuation,
                   ambiguity_function [2026], detect_peaks [2026]
 src/scene/        scene_default, simulate_scene, clutter_slow_time, roc_monte_carlo [2026]
 src/util/         radar_constants, db2lin, lin2db, save_figure, repo_root
 scripts/          s01_pulse_train · s02_radar_equation · s03_detection_theory · s04_pulse_compression ·
-                  s06_cfar · s07_mti · demo_end_to_end · run_all
+                  s05_rcs · s06_cfar · s07_mti · demo_end_to_end · run_all
 tests/            matlab.unittest suites, one per src/ area
 results/figures/  every figure in this README, regenerated by run_all
 ```
@@ -229,12 +265,11 @@ results/figures/  every figure in this README, regenerated by run_all
 | 2.1 noise figure · 2.2 radar equation · 2.3–2.6 | `cascade_noise_figure`, `radar_snr` · `s02_radar_equation` |
 | 3.1 false-alarm time · 3.5 Albersheim · 3.2–3.6 | `false_alarm_time`, `albersheim_snr` · `s03_detection_theory` |
 | 4.1 coded pulse · 4.2–4.7 | `phase_coded_pulse`, `matched_filter`, `barker_search` · `s04_pulse_compression` |
+| 5.1 sphere · 5.2 plate · 5.3 multi-scatterer RCS · 5.4–5.6 two spheres, Swerling | `rcs_sphere_mie`, `rcs_circular_plate`, `rcs_scatterers`, `swerling_pdf` · `s05_rcs` |
 | 6.1 detector statistics · 6.2 scaling factor · 6.3–6.4 CA-CFAR | `ca_cfar_alpha`, `ca_cfar`, `ca_cfar_pfa` · `s06_cfar` |
 | 7.1 white noise · 7.2–7.4 single and double cancellers | `mti_canceller`, `mti_response` · `s07_mti` |
 
 ## Roadmap
-- **Radar cross section (Lab 5).** The code was written by a lab partner and will be added with
-  credit.
 - **Robust CFAR variants.** GO-CFAR for clutter edges and OS-CFAR for multiple targets.
 - **Doppler processing.** A filter bank (MTD) and staggered PRFs, to keep slow targets and move
   the blind speeds.
@@ -245,6 +280,7 @@ Developed jointly and equally by **Adam Ruiz Herrero** and **Ali Yamani El Yaman
 The exploration sections of `s04` (signal anatomy, Barker-13 filter) come from study demos
 written for Lab 4.
 
-The lab statements belong to UPC-EETAC and are not part of this repository. No code was
-provided by the course: the statements only specify inputs and outputs. Details are in
+The lab statements belong to UPC-EETAC and are not part of this repository. Apart from
+two RCS routines in the Lab 5 statement (adapted from Mahafza, 2005, and not redistributed),
+the course provides no code: the statements only specify inputs and outputs. Details are in
 [CREDITS.md](CREDITS.md). Licensed under the [MIT License](LICENSE).
