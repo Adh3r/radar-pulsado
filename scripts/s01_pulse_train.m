@@ -82,7 +82,7 @@ save_figure(fig, 's01_range_ambiguity');
 %    theorem), or pulse-to-pulse coding to identify which pulse an echo belongs to.
 
 %% 1.4 Spectra: single pulse, burst, modulated burst
-env1 = double(t < tau);
+env1 = zeros(size(t));  env1(1:round(tau*fs)) = 1;     % integer indices, no float comparison
 [f, E1] = spectrum_fft(env1, fs);
 [~, E5] = spectrum_fft(env, fs);
 [~, V5] = spectrum_fft(v/m.Vpeak, fs);

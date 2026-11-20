@@ -163,7 +163,7 @@ had 101 samples instead of 100. The bug is now fixed and covered by a regression
 
 <img src="results/figures/s05_swerling_statistics.png" width="100%">
 
-- **5.5 Comparable scatterers.** Ten scatterers of similar RCS, swept through 36 001 aspect
+- **5.5 Comparable scatterers.** Ten scatterers of similar RCS, swept through 36 000 aspect
   angles, give an exponential pdf, the Swerling I/II model: std/mean = 0.93, KS distance 0.019.
 - **5.6 One dominant scatterer.** Making one scatterer 17 dB stronger removes the deep fades,
   and the result moves towards Swerling III/IV (KS distance 0.115). **[2026]** The exact
@@ -185,22 +185,24 @@ leaving G guard cells on each side, and scales that estimate by α. For square-l
 the noise power.
 - **6.2.** For M = 40 and Pfa = 0.01, α = 4.8807. With known noise power it would be −ln Pfa =
   4.6052; the difference is the price of estimating the noise.
-- **6.3.** Along a 10 000-cell range profile the detector raises 104 false alarms in 9956 valid
-  cells: Pfa = 0.0104.
+- **6.3.** With 1 guard cell per side, as in Fig. 3 of the statement, a 10 000-cell range
+  profile gives 104 false alarms in 9958 valid cells: Pfa = 0.0104.
 - **6.4.** With the lab's 10⁴ trials, Pfa = 10⁻³ rests on about 10 events and 10⁻⁴ on about 1,
-  so those estimates are dominated by chance. **[2026]** With 2·10⁶ trials every design value
-  falls inside its 95 % confidence interval.
+  so those estimates are dominated by chance. **[2026]** With 2·10⁶ trials the measured values
+  match the design within statistical error. The 10⁻⁴ point (171 counts against 200 expected)
+  is 2σ low, about what one in four 95 % intervals should show.
 
 <img src="results/figures/s06_pfa_check.png" width="40%"> <img src="results/figures/s06_cfar_loss.png" width="58%">
 
 - **[2026] Pitfall: the detector law matters.** Using the square-law α on linear-detector
-  (envelope) samples gives Pfa = 1.5·10⁻² instead of 10⁻¹, and 2·10⁻⁶ instead of 10⁻².
+  (envelope) samples gives Pfa = 1.5·10⁻² instead of 10⁻¹, and not a single crossing in 2·10⁶
+  trials instead of 10⁻².
 - **[2026] CFAR loss.** For a Swerling I target at Pfa = 10⁻⁶ and Pd = 0.5, the loss is 4.2 dB
   with M = 8, 2.0 dB with M = 16 and 0.8 dB with M = 40. Monte Carlo agrees with the closed form
   within 0.002 in Pd.
 - **[2026] Failure modes.** A 30 dB target masks a 13 dB neighbour six cells away, because it
   inflates the noise estimate 40-fold. At a +20 dB clutter edge, the local Pfa jumps to
-  3.4·10⁻², 34 times the design value, just inside the clutter, and drops to zero just before
+  3.3·10⁻², 33 times the design value, just inside the clutter, and drops to zero just before
   it, where weak targets are masked. GO-CFAR and OS-CFAR are the standard remedies.
 
 <img src="results/figures/s06_cfar_failure_modes.png" width="100%">
@@ -215,8 +217,8 @@ x[n−2], are first- and second-order high-pass filters in slow time.
   histogram. After the single canceller the noise power doubles (2.08 W, against Σh² = 2) and
   the spectrum takes the shape 4 sin²(πf·PRI). The statement asks for the *double* canceller in
   7.2; from the title and 7.3 it is the single one, and that is what is simulated.
-- **7.3–7.4.** Averaging 1000 runs, the normalised responses match sin² (eq. 7.2) and sin⁴
-  (eq. 7.3) to within 0.0016 and 0.0025.
+- **7.3–7.4.** Averaging 1000 runs, the normalised amplitude responses match |sin(πf·PRI)|
+  (eq. 7.2) and sin²(πf·PRI) (eq. 7.3) to within 0.0069 and 0.0051.
 
 <img src="results/figures/s07_clutter_attenuation.png" width="100%">
 
@@ -229,6 +231,20 @@ x[n−2], are first- and second-order high-pass filters in slow time.
   double.
 
 <img src="results/figures/s07_blind_speeds.png" width="55%">
+
+## Notes on the lab statements
+Checking every result against theory turned up a few inconsistencies in the statements. They are
+handled in the code and listed here so that the results can be compared with the handouts:
+- **Lab 3.** The formula sheet gives 0.17 as the last coefficient of Albersheim's equation; 1.7
+  is the value that reproduces the reference curves (Pd = 0.9, Pfa = 10⁻⁶ → 13.1 dB).
+- **Lab 4.** The Doppler phase is written ω_d = 2·f₀·2v/c; the angular frequency is 2π·fd, with
+  fd = 2v·f₀/c.
+- **Lab 5.** The sphere routine in the handout returns |Σ| rather than |Σ|². The normalised RCS
+  is |Σ|², which is what `rcs_sphere_mie` computes and what follows 9(ka)⁴ in the Rayleigh
+  region. The text of 5.2 also names the plate routine `rcs_rect_plate`, while the code given is
+  for a circular plate.
+- **Lab 7.** Exercise 7.2 says "double canceller"; its title and exercise 7.3 refer to the single
+  canceller, which is what is simulated.
 
 ## How to run
 Requires MATLAB R2020a or newer, with no toolboxes (tested on R2026a).

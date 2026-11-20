@@ -73,24 +73,24 @@ for order = 1:2
         acc_in  = acc_in  + abs(fft(xr(order+1:end))).^2;      % input aligned with the output
         acc_out = acc_out + abs(fft(yr)).^2;
     end
-    Hest = acc_out ./ acc_in;                                  % averaged |H|^2
+    Hest = sqrt(acc_out ./ acc_in);                            % averaged amplitude response |H|
     Hest = Hest / max(Hest);                                   % normalised to 1 (as asked)
     fN = fnorm(N);
-    Hth = (mti_response(fN, 1, order) / 2^order).^2;           % normalised |H|^2
+    Hth = mti_response(fN, 1, order) / 2^order;                % eqs. 7.2 / 7.3 normalised: |sin|, sin^2
     err = max(abs(Hest(:) - Hth(:)));
-    fprintf('order %d: max |simulated - theory| (normalised |H|^2) = %.4f\n', order, err);
+    fprintf('order %d: max |simulated - theory| (normalised |H|) = %.4f\n', order, err);
     subplot(1,2,1); plot(fN, Hest, 'Color', cols{order}, 'LineWidth', 1.1); hold on;
     plot(fN, Hth, 'k:', 'LineWidth', 1.4);
-    subplot(1,2,2); plot(fN, 10*log10(Hest), 'Color', cols{order}, 'LineWidth', 1.1); hold on;
-    plot(fN, 10*log10(Hth + eps), 'k:', 'LineWidth', 1.4);
+    subplot(1,2,2); plot(fN, 20*log10(Hest), 'Color', cols{order}, 'LineWidth', 1.1); hold on;
+    plot(fN, 20*log10(Hth + eps), 'k:', 'LineWidth', 1.4);
 end
-subplot(1,2,1); grid on; xlabel('f \cdot PRI'); ylabel('Normalised |H|^2');
-title('Linear'); legend('single (sim)', 'sin^2(\pi f PRI)', 'double (sim)', 'sin^4(\pi f PRI)', 'Location', 'south');
+subplot(1,2,1); grid on; xlabel('f \cdot PRI'); ylabel('Normalised |H|');
+title('Linear'); legend('single (sim)', '|sin(\pi f PRI)|  (eq. 7.2)', 'double (sim)', 'sin^2(\pi f PRI)  (eq. 7.3)', 'Location', 'south');
 subplot(1,2,2); grid on; xlabel('f \cdot PRI'); ylabel('dB'); ylim([-60 3]);
 title('dB: the double canceller has a wider, deeper notch');
 save_figure(fig, 's07_canceller_response');
-% Discussion: the averaged estimates follow sin^2 and sin^4 (eqs. 7.2 and 7.3
-% squared, normalised). The double canceller widens the stop band around
+% Discussion: the averaged amplitude responses follow |sin| and sin^2, i.e.
+% eqs. 7.2 (2|sin(wT/2)|) and 7.3 (4 sin^2(wT/2)) normalised to 1. The double canceller widens the stop band around
 % zero Doppler, which rejects spread clutter better, at the price of
 % attenuating slow targets more and of a narrower pass band.
 

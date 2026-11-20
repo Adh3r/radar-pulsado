@@ -102,7 +102,7 @@ save_figure(fig, 's05_two_spheres');
 
 %% 5.5-5.6 Swerling statistics from 10 random scatterers, 3 GHz, 1 km
 fc5 = 3e9; R_circle = 5;                          % "circle of 10 m": 10 m diameter assumed
-phi5 = (0:0.01:360).';                            % steps of 0.01 deg
+phi5 = (0:0.01:359.99).';                         % steps of 0.01 deg (360 = 0: not repeated)
 radar5 = [1e3*ones(size(phi5)), 90*ones(size(phi5)), phi5];
 ns = 10;
 rr = R_circle*sqrt(rand(ns,1)); aa = 2*pi*rand(ns,1);

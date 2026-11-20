@@ -60,7 +60,7 @@ fprintf('M = %d, Pfa = %g -> alpha = M (Pfa^(-1/M) - 1) = %.4f\n', M, Pfa0, alph
 fprintf('(known noise power would need alpha = -ln(Pfa) = %.4f; the excess is the price of estimating it)\n', -log(Pfa0));
 
 %% 6.3 CA-CFAR along a range profile
-G = 2;                                         % guard cells per side (the lab leaves G free)
+G = 1;                                         % guard cells per side (Fig. 3 of the statement)
 [det, T] = ca_cfar(y_sq, M, G, alpha0);
 valid = ~isnan(T);
 n_fa = nnz(det);

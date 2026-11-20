@@ -14,7 +14,8 @@ BW = 10.^(0:9);
 Tfa = false_alarm_time(ratio_dB, BW);
 
 fig = figure('Name', '3.2 Time between false alarms');
-semilogy(ratio_dB, Tfa, 'LineWidth', 1.2); grid on;
+h = semilogy(ratio_dB, Tfa, 'LineWidth', 1.2); grid on;
+col = turbo(numel(h)); for c = 1:numel(h), h(c).Color = col(c,:); end   % 10 distinct colours
 xlabel('Threshold-to-noise ratio V_T^2/2\psi_0 [dB]'); ylabel('T_{fa} [s]');
 title('Mean time between false alarms'); legend(compose('BW = 10^{%d} Hz', 0:9), 'Location', 'northwest');
 for ref = [60 3600 86400 3.15e7], yline(ref, 'k:'); end
@@ -44,7 +45,8 @@ Pfa = 10.^(-12:-3);
 SNR_alb = albersheim_snr(Pd, Pfa);
 
 fig = figure('Name', '3.6 Detection curves');
-plot(SNR_alb, Pd, 'LineWidth', 1.2); grid on; ylim([0.3 1]);
+h = plot(SNR_alb, Pd, 'LineWidth', 1.2); grid on; ylim([0.3 1]);
+col = turbo(numel(h)); for c = 1:numel(h), h(c).Color = col(c,:); end   % 10 distinct colours
 xlabel('Single-pulse SNR [dB]'); ylabel('P_d');
 title('Detection curves (Albersheim, one pulse, non-fluctuating target)');
 legend(compose('P_{fa} = 10^{%d}', -12:-3), 'Location', 'southeast');

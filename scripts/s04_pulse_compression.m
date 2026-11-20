@@ -18,8 +18,9 @@ for i = 1:4
     [s, ~, sn, Ts] = phase_coded_pulse(tau, ns, ph(K), [], SNR);
     t = (0:numel(s)-1)*Ts*1e6;
     subplot(2,2,i);
-    plot(t, rad2deg(angle(sn)), '.', 'Color', [0.85 0.3 0.3], 'MarkerSize', 4); hold on;
-    stairs(t, rad2deg(angle(s)), 'b', 'LineWidth', 1.4); grid on; ylim([-200 200]);
+    wrap = @(z) mod(rad2deg(angle(z)) + 90, 360) - 90;   % phase in [-90, 270): 180 deg never flips to -180
+    plot(t, wrap(sn), '.', 'Color', [0.85 0.3 0.3], 'MarkerSize', 4); hold on;
+    stairs(t, wrap(s), 'b', 'LineWidth', 1.4); grid on; ylim([-90 270]);
     xlabel('Time [\mus]'); ylabel('Phase [deg]');
     title(sprintf('Barker-%d: chip = %.0f ns', K, tau/K*1e9));
 end
@@ -28,7 +29,8 @@ save_figure(fig, 's04_barker_phases');
 % Discussion: the pulse length is fixed (1 us), so longer codes have shorter
 % chips (200 -> 77 ns) and hence wider bandwidth B ~ K/tau. The phase takes
 % only 0 / 180 deg; at 30 dB the noise adds 1/sqrt(2 SNR) = 1.3 deg rms of phase jitter.
-% (angle() reports 180 deg as +-180, the same phase.)
+% angle() returns [-180, 180], so a noisy 180-deg chip would jump between +180 and
+% -180; the phase is therefore plotted in [-90, 270).
 
 %% 4.3 Matched-filter output and sidelobe metrics
 fprintf('\n=== 4.3 Matched filter, Barker codes (noise-free metrics) ===\n');
@@ -64,7 +66,7 @@ for i = 1:numel(SNRs)
     y = matched_filter(sn, s);
     side = abs(y); side(numel(s) + (-2*ns:2*ns)) = 0;
     fprintf('SNR %4d dB: peak/max sidelobe = %5.2f (noise-free 13.0)\n', SNRs(i), max(abs(y))/max(side));
-    subplot(numel(SNRs), 2, 2*i-1); plot((0:numel(sn)-1)*Ts*1e6, abs(sn), 'k'); grid on;
+    subplot(numel(SNRs), 2, 2*i-1); plot((0:numel(sn)-1)*Ts*1e6, abs(sn), 'k'); grid on; ylim([0 Inf]);
     ylabel('|s_n|'); title(sprintf('Input, SNR = %d dB', SNRs(i)));
     subplot(numel(SNRs), 2, 2*i);   plot(((1:numel(y)) - numel(s))*Ts*1e6, abs(y), 'b'); grid on;
     title(sprintf('Matched-filter output, SNR = %d dB', SNRs(i)));
@@ -123,12 +125,14 @@ fprintf('\n=== 4.6 Doppler, Barker-13 ===\n');
 for v = v_kmh
     fd = doppler_frequency(v/3.6, f0);
     y = matched_filter(apply_doppler(sn, fd, Ts), s);
-    plot(((1:numel(y)) - numel(s))*Ts*1e6, abs(y), 'LineWidth', 1.4); hold on;
+    sty = {'-', '--', '-'};  lw = [2.5 1.4 1.4];                  % 0 and 600 km/h overlap: dashed
+    plot(((1:numel(y)) - numel(s))*Ts*1e6, abs(y), sty{v_kmh == v}, 'LineWidth', lw(v_kmh == v)); hold on;
+    loss = 20*log10(max(abs(matched_filter(apply_doppler(s, fd, Ts), s)))/(13*ns));   % noise-free
     fprintf('v = %6d km/h: fd = %7.2f kHz, phase drift over the pulse = %6.1f deg, peak loss = %5.2f dB\n', ...
-            v, fd/1e3, 360*fd*numel(s)*Ts, 20*log10(max(abs(y))/(13*ns)));
+            v, fd/1e3, 360*fd*numel(s)*Ts, loss);
 end
 grid on; xlabel('Lag [\mus]'); ylabel('|s_0|');
-legend(compose('v_r = %d km/h', v_kmh)); title('Barker-13 matched filter with Doppler shift');
+legend(compose('v_r = %d km/h', v_kmh)); title('Barker-13 matched filter with Doppler shift (0 and 600 km/h coincide)');
 save_figure(fig, 's04_doppler');
 % Discussion: at 600 km/h (fd = 3.1 kHz) the phase drifts only 1.5 deg over
 % the 1.3 us pulse: the output is unchanged. At 60 000 km/h (fd = 311 kHz)
@@ -208,9 +212,9 @@ plot([1 -1], [0 0], 'bx', 'MarkerSize', 12, 'LineWidth', 2.5); grid on; axis equ
 xlim([-2 2]); ylim([-2 2]); xlabel('I'); ylabel('Q');
 title('I/Q at 15 dB: the two BPSK points become noise clouds');
 subplot(2,2,3);
-plot(t13*1e6, mod(rad2deg(angle(sn13)) + 90, 360) - 90, 'b.', 'MarkerSize', 4); hold on;
-plot(t13*1e6, mod(rad2deg(angle(sd13)) + 90, 360) - 90, 'r.', 'MarkerSize', 4); grid on;
-xlabel('Time [\mus]'); ylabel('Phase [deg]'); ylim([-90 270]);
+plot(t13*1e6, mod(rad2deg(angle(sn13)) + 30, 360) - 30, 'b.', 'MarkerSize', 4); hold on;   % [-30, 330):
+plot(t13*1e6, mod(rad2deg(angle(sd13)) + 30, 360) - 30, 'r.', 'MarkerSize', 4); grid on;   % ramp up to ~326 deg
+xlabel('Time [\mus]'); ylabel('Phase [deg]'); ylim([-30 330]);
 title(sprintf('Barker-13 phase: static vs 60 000 km/h (f_d = %.0f kHz ramp)', fd/1e3));
 legend('static', 'Doppler', 'Location', 'southwest');
 subplot(2,2,4);
