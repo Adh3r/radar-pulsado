@@ -1,5 +1,10 @@
 # Pulsed Radar Signal Processing in MATLAB
 
+[![tests](https://github.com/Adh3r/radar-pulsado/actions/workflows/tests.yml/badge.svg)](https://github.com/Adh3r/radar-pulsado/actions/workflows/tests.yml)
+![MATLAB](https://img.shields.io/badge/MATLAB-R2020a%2B-orange)
+![toolboxes](https://img.shields.io/badge/toolboxes-none-success)
+[![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 ![End-to-end demo: raw echoes, matched filter and integration](results/figures/demo_overview.png)
 
 This is a pulsed-radar processing chain built from first principles in plain MATLAB (no
